@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+    ros2_humble_base_image:
+        build:
+            context: .
+            dockerfile: Dockerfile.ros2.humble.base
+        image: ros2_humble_base_image
+

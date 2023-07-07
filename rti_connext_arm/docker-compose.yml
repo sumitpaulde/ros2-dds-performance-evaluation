@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+    rti_connext_builder:
+        build:
+            context: .
+            dockerfile: Dockerfile.ros2.humble.connext.arm
+        image: rti_connext_dds_humble_arm
+        command: > 
+                bash -c "
+                ros2 run cam_stream binary_publisher_relay_subscriber --ros-args -p filepath:=/root/images/images_2mb -p hz:=10"

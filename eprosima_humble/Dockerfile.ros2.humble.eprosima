@@ -1,0 +1,54 @@
+ARG BASE_IMAGE=ros2_humble_base_image
+FROM ${BASE_IMAGE}
+
+ENV ROS_DISTRO=humble
+
+
+#integration service instlation
+#----------------------------------------------
+RUN mkdir eProsima_fast_dds
+COPY eProsima_Fast-DDS-v2.7.1 /root/eProsima_fast_dds/fast_rtps
+
+RUN mkdir is_workspace
+
+COPY binary_data.yaml is_workspace
+COPY imu_data.yaml is_workspace
+COPY string_data.yaml is_workspace
+COPY src is_workspace/src
+RUN apt update && apt install -y libyaml-cpp-dev libboost-program-options-dev && rm -rf
+RUN apt update && apt install -y libcurlpp-dev libasio-dev libcurl4-openssl-dev && rm -rf
+
+RUN cd is_workspace && \
+    source ${ROS_PATH} && \
+    source ${ROS_WORKSPACE}/install/setup.bash && \
+    colcon build --packages-select xtypes --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DBUILD_ROS2_TESTS=OFF -DBUILD_ROS2_EXAMPLES=ON &&\
+    colcon build --packages-select is-core is-example --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DBUILD_ROS2_TESTS=OFF -DBUILD_ROS2_EXAMPLES=ON &&\
+    colcon build --packages-select is-mock --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DBUILD_ROS2_TESTS=OFF -DBUILD_ROS2_EXAMPLES=ON &&\
+    colcon build --packages-select is-fastdds --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DBUILD_ROS2_TESTS=OFF -DBUILD_ROS2_EXAMPLES=ON &&\
+    colcon build --packages-select is-json-xtypes --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DBUILD_ROS2_TESTS=OFF -DBUILD_ROS2_EXAMPLES=ON &&\
+    colcon build --packages-select is-ros2 --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DBUILD_ROS2_TESTS=OFF -DBUILD_ROS2_EXAMPLES=ON &&\
+    colcon build --packages-select is-ros2-mix-generator --cmake-args -DMIX_ROS2_PACKAGES="std_msgs sensor_msgs hare_robot_interfaces" -DIS_ROS2_DISTRO=humble
+    
+     
+
+USER root
+WORKDIR /root
+RUN chmod +x /root/eProsima_fast_dds/fast_rtps/install.sh &&\
+    cd /root/eProsima_fast_dds/fast_rtps/ &&\
+    yes | ./install.sh && \
+    export LD_LIBRARY_PATH=/usr/local/lib/ 
+
+# install the rmw-fastrtps 
+#-----------------------------------------------------  
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y ros-${ROS_DISTRO}-rmw-fastrtps-cpp && rm -rf 
+#RUN apt update && apt install -y python3-opencv && rm -rf
+    
+COPY ros_publisher_entrypoint.sh /user/local/
+
+USER root
+WORKDIR /root
+RUN chmod +x /user/local/ros_publisher_entrypoint.sh
+
+ENTRYPOINT ["/user/local/ros_publisher_entrypoint.sh"]
+CMD ["bash"]

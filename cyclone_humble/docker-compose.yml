@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+    cyclone_dds_humble:
+        build:
+            context: .
+            dockerfile: Dockerfile.ros2.humble.cyclone
+        image: cyclone_dds_humble
+        command: > 
+                bash -c "
+                ros2 run cam_stream binary_publisher_relay_subscriber --ros-args -p filepath:=/root/images/images_2mb
+                &&  ~/ros2_ws/src/zenoh-plugin-dds/target/release/zenoh-bridge-dds -d 5 -e tcp/10.5.0.6:7448"

@@ -1,0 +1,138 @@
+ARG BASE_IMAGE=ubuntu:22.04
+FROM ${BASE_IMAGE}
+
+ARG ROS_PKG=ros_base
+ENV ROS_DISTRO=humble
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_PYTHON_VERSION=3
+ENV ROS_WORKSPACE=/root/ros2_ws/
+ENV ROS_PATH=/${ROS_ROOT}/setup.bash
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL /bin/bash
+SHELL ["/bin/bash", "-c"] 
+
+WORKDIR /root
+
+# change the locale from POSIX to UTF-8
+RUN apt-get update && apt-get install -y locales && rm -rf
+RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
+
+
+# set Python3 as default
+RUN apt-get -y update && \
+ apt-get -y install software-properties-common && \
+ add-apt-repository ppa:deadsnakes/ppa && \
+# Install py39 from deadsnakes repository && \
+ apt-get -y install python3.8
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+# add the ROS deb repo to the apt sources list
+#
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+		curl \
+		wget \
+		gnupg2 \
+		lsb-release \
+		ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+    
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+
+# install development packages
+#
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+		build-essential \
+		cmake \
+		git \
+		libbullet-dev \
+		libpython3-dev \
+		python3-colcon-common-extensions \
+		python3-flake8 \
+		python3-pip \
+		python3-numpy \
+		python3-pytest-cov \
+		python3-rosdep \
+		python3-pandas \
+		python3-setuptools \
+		python3-vcstool \
+		python3-rosinstall-generator \
+        python3-opencv \
+		libasio-dev \
+		libtinyxml2-dev \
+		libcunit1-dev \
+        autotools-dev \
+        libicu-dev \
+        libbz2-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+    
+RUN apt-get update && \
+    apt-get install -y pkg-config \
+    libgtk-3-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libv4l-dev \
+    libxvidcore-dev \ 
+    libx264-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    gfortran \ 
+    openexr \ 
+    libatlas-base-dev \
+    python3-dev \
+    python3-numpy \
+    libtbb2 \
+    libtbb-dev \
+    libopenexr-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer1.0-dev \
+    libboost-all-dev
+
+
+
+
+
+	
+    
+
+#install ros2 specific version:
+#-----------------------------------------------------
+RUN apt-get -y update && apt-get install -y ros-${ROS_DISTRO}-ros-base python3-argcomplete && rm -rf
+RUN echo 'source ${ROS_PATH}' >> /root/.bashrc
+
+RUN apt-get -y install ros-${ROS_DISTRO}-vision-opencv &&\
+apt-get -y install ros-${ROS_DISTRO}-cv-bridge
+COPY cam_stream ros2_ws/src/cam_stream/
+# COPY vision_opencv ros2_ws/src/vision_opencv/
+COPY hare_robot_interfaces ros2_ws/src/hare_robot_interfaces
+RUN cd ros2_ws && \ 
+    source ${ROS_PATH} && \
+    colcon build --cmake-args -DOpenCV_DIR=/usr/local/lib/python3.8/site-packages/cv2 --symlink-install
+
+
+RUN echo 'source ${ROS_WORKSPACE}/install/setup.bash' >> /root/.bashrc
+
+# Prepare binary Images
+#---------------------------------------------
+COPY imu.txt /root/
+COPY images /root/images
+COPY prepare_images.python /root/prepare_images.python
+COPY experiment_dds_performance_script_binary.sh /root/experiment_dds_performance_script_binary.sh
+COPY experiment_dds_performance_script_string.sh /root/experiment_dds_performance_script_string.sh
+COPY experiment_dds_performance_script_imu.sh /root/experiment_dds_performance_script_imu.sh
+COPY intermidiate_process_time_calculator.sh /root/intermidiate_process_time_calculator.sh
+COPY transfer_rate_publisher.sh /root/transfer_rate_publisher.sh
+RUN chmod +x /root/prepare_images.python
+RUN python3 prepare_images.python /root/images
+

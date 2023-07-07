@@ -1,0 +1,4 @@
+int32 lednumber
+int32 ledstate
+---
+bool success

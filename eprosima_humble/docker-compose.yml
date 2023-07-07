@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+    eprosima_dds_humble_build:
+        build:
+            context: .
+            dockerfile: Dockerfile.ros2.humble.eprosima
+        image: eprosima_humble_dds
+        command: > 
+                bash -c "source /opt/ros/foxy/setup.bash && ros2 run cam_stream binary_publisher_relay_subscriber --ros-args -p filepath:=/root/images/images_2mb"
+                
+

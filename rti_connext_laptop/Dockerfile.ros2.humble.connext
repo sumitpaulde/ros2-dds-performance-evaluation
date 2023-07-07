@@ -1,0 +1,50 @@
+ARG BASE_IMAGE=ros2_humble_base_image
+FROM ${BASE_IMAGE}
+ENV ROS_PATH=/opt/ros/humble/setup.bash
+
+#install rti connext_dds
+RUN mkdir rti_workspace
+RUN mkdir .rti
+
+COPY rticommon_config.sh .rti
+
+COPY ["rti_connext_dds-6.1.1-lm-x64Linux4gcc7.3.0.run", "rti_license.dat", "rti_workspace/"]
+ENV RTI_LICENSE_FILE="~/root/rti_workspace/rti_license.dat"
+ENV DEBIAN_FRONTEND=noninteractive
+RUN cd rti_workspace && \
+    chmod +x rti_connext_dds-6.1.1-lm-x64Linux4gcc7.3.0.run && \
+    yes | ./rti_connext_dds-6.1.1-lm-x64Linux4gcc7.3.0.run  --prefix /root/rti_workspace/rti_connext_dds-6.1.1
+
+
+COPY rti_license.dat  /root/rti_workspace/y/rti_connext_dds-6.1.1/
+COPY rti_license.dat /opt/rti_connext_dds-6.1.1
+ENV CONNEXTDDS_DIR="/root/rti_workspace/y/rti_connext_dds-6.1.1"
+ENV RTI_LICENSE_FILE="/root/rti_workspace/y/rti_connext_dds-6.1.1/rti_license.dat"
+RUN source ${ROS_PATH} && \
+ source /root/rti_workspace/y/rti_connext_dds-6.1.1/resource/scripts/rtisetenv_x64Linux4gcc7.3.0.bash && \
+ mkdir -p /root/rti_workspace/rmw/src/ros2 && \
+ cd /root/rti_workspace/rmw && \
+ git clone https://github.com/rticommunity/rmw_connextdds.git src/ros2/rmw_connextdds && \
+ cd src/ros2/rmw_connextdds && \
+ git checkout ${ROS_DISTRO} && \
+ cd .. && \
+ colcon build --symlink-install
+ 
+COPY camera_stream_bridge.xml  /root/rti_workspace/y/rti_connext_dds-6.1.1/ 
+COPY string_stream_bridge.xml  /root/rti_workspace/y/rti_connext_dds-6.1.1/ 
+COPY imu_stream_bridge.xml  /root/rti_workspace/y/rti_connext_dds-6.1.1/ 
+RUN echo 'source /root/rti_workspace/y/rti_connext_dds-6.1.1/resource/scripts/rtisetenv_x64Linux4gcc7.3.0.bash' >> /root/.bashrc
+RUN echo 'source /root/rti_workspace/rmw/src/ros2/install/setup.bash' >> /root/.bashrc
+
+
+
+#RUN apt update && apt install -y python3-opencv && rm -rf
+COPY ros_publisher_entrypoint.sh /user/local/
+
+
+USER root
+WORKDIR /root
+RUN chmod +x /user/local/ros_publisher_entrypoint.sh
+
+ENTRYPOINT ["/user/local/ros_publisher_entrypoint.sh"]
+CMD ["bash"]

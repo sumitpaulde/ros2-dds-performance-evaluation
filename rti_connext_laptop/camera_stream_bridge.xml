@@ -1,0 +1,104 @@
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.1.1/rti_routing_service.xsd">
+
+    <routing_service name="domain5to10">
+        <annotation>
+            <documentation>
+                Routes all topics from domain 5 to domain 10 sends it back to domain 5
+                and with RELIABLE QoS
+            </documentation>
+        </annotation>
+
+        <!-- The administration tag enables remote administration, and is 
+            required when using Admin Console. -->
+        <administration>
+            <domain_id>0</domain_id>
+            <distributed_logger>
+                <enabled>true</enabled>
+                <filter_level>WARNING</filter_level>
+            </distributed_logger>
+        </administration>
+
+        <!-- This is the Monitoring configuration for all the entities in 
+            this routing service, and is required when using Admin Console. -->
+        <monitoring>
+            <!-- The domain id where to publish the monitoring information -->
+            <domain_id>0</domain_id>
+            <!-- How often to publish it -->
+            <status_publication_period>
+                <sec>5</sec>
+                <nanosec>0</nanosec>
+            </status_publication_period>
+            <!-- How often to compute statistics -->
+            <statistics_sampling_period>
+                <sec>1</sec>
+                <nanosec>0</nanosec>
+            </statistics_sampling_period>
+        </monitoring>
+
+        <domain_route name="TwoWayDomainRoute">
+
+            <participant name="cam_stream binary_publisher_relay_subscriber">
+                <domain_id>5</domain_id>
+            </participant>
+
+            <participant name="cam_stream binary_subscriber_relay_publisher">
+                <domain_id>10</domain_id>
+            </participant>
+
+            <session name="Session1">
+                <auto_topic_route name="AllForward">
+                    <publish_with_original_info>true</publish_with_original_info>
+                    <input participant="cam_stream binary_file_publisher">
+                        <allow_topic_name_filter>*</allow_topic_name_filter>
+                        <allow_registered_type_name_filter>*</allow_registered_type_name_filter>
+                        <deny_topic_name_filter>rti/*</deny_topic_name_filter>
+                        <creation_mode>ON_DOMAIN_AND_ROUTE_MATCH</creation_mode>
+
+                    </input>
+                    <output participant="cam_stream binary_file_subscriber">
+                        <allow_topic_name_filter>*</allow_topic_name_filter>
+                        <allow_registered_type_name_filter>*</allow_registered_type_name_filter>
+                        <deny_topic_name_filter>rti/*</deny_topic_name_filter>
+                        <creation_mode>ON_DOMAIN_AND_ROUTE_MATCH</creation_mode>
+                        <datawriter_qos>
+                            <publish_mode>
+                                <kind>ASYNCHRONOUS_PUBLISH_MODE_QOS</kind>
+                            </publish_mode>
+                            <reliability>
+                                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                            </reliability>
+                        </datawriter_qos>
+                    </output>
+                </auto_topic_route>
+            </session>
+            <session name="Session2">
+                <auto_topic_route name="AllForward">
+                    <publish_with_original_info>true</publish_with_original_info>
+                    <input participant="cam_stream binary_file_subscriber">
+                        <allow_topic_name_filter>*</allow_topic_name_filter>
+                        <allow_registered_type_name_filter>*</allow_registered_type_name_filter>
+                        <deny_topic_name_filter>rti/*</deny_topic_name_filter>
+                        <creation_mode>ON_DOMAIN_AND_ROUTE_MATCH</creation_mode>
+
+                    </input>
+                    <output participant="cam_stream binary_file_publisher">
+                        <allow_topic_name_filter>*</allow_topic_name_filter>
+                        <allow_registered_type_name_filter>*</allow_registered_type_name_filter>
+                        <deny_topic_name_filter>rti/*</deny_topic_name_filter>
+                        <creation_mode>ON_DOMAIN_AND_ROUTE_MATCH</creation_mode>
+                        <datawriter_qos>
+                            <publish_mode>
+                                <kind>ASYNCHRONOUS_PUBLISH_MODE_QOS</kind>
+                            </publish_mode>
+                            <reliability>
+                                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                            </reliability>
+                        </datawriter_qos>
+                    </output>
+                </auto_topic_route>
+            </session>
+            </domain_route>
+            </routing_service>
+
+</dds>

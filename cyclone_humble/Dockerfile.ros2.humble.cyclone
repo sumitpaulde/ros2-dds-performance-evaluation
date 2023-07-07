@@ -1,0 +1,43 @@
+ARG BASE_IMAGE=ros2_humble_base_image
+FROM ${BASE_IMAGE}
+
+ENV ROS_DISTRO=humble
+
+# install cyclone dds    
+RUN mkdir cyclonedds && \
+    cd cyclonedds && \
+    git clone https://github.com/eclipse-cyclonedds/cyclonedds.git && \
+    cd cyclonedds && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/root/ -DBUILD_EXAMPLES=ON .. && \
+    cmake --build . && \
+    cmake --build . --target install
+ 
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y ros-${ROS_DISTRO}-rmw-cyclonedds-cpp && rm -rf 
+RUN apt update && apt install -y python3-rosdep && rm -rf
+
+# RUN echo "deb [trusted=yes] https://download.eclipse.org/zenoh/debian-repo/ /" | tee -a /etc/apt/sources.list > /dev/null &&\
+#     apt-get update && \
+#     apt-get install -y zenoh
+
+RUN cd ros2_ws/src && \
+    rosdep init && \
+    rosdep update && \
+    git clone https://github.com/eclipse-zenoh/zenoh-plugin-dds.git -b branch_0.5.0-beta.9 &&\
+    cd zenoh-plugin-dds && \
+    rosdep install --from-paths . --ignore-src -r -y && \
+    cargo build --release -p zenoh-bridge-dds
+#    colcon build --packages-select zenoh-bridge-dds --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+RUN echo 'source ${ROS_WORKSPACE}/install/setup.bash' >> /root/.bashrc   
+
+COPY ros_publisher_entrypoint.sh /user/local/
+
+USER root
+WORKDIR /root
+RUN chmod +x /user/local/ros_publisher_entrypoint.sh
+
+ENTRYPOINT ["/user/local/ros_publisher_entrypoint.sh"]
+CMD ["bash"]

@@ -1,0 +1,11 @@
+systems:
+    ros2_domain5: { type: ros2, domain: 5, node_name: "imu_publisher_relay_subscriber" }
+    ros2_domain10: { type: ros2, domain: 10, node_name: "imu_subscriber_relay_publisher" }
+
+routes:
+    domain_5_to_10: { from: ros2_domain5, to: ros2_domain10 }
+    domain_10_to_5: { from: ros2_domain10, to: ros2_domain5 }
+
+topics:
+    imu_data: { type: "hare_robot_interfaces/Imu", route: domain_5_to_10 }
+    imu_data_relay: { type: "hare_robot_interfaces/Imu", route: domain_10_to_5 }
