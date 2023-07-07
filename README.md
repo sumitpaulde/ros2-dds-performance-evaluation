@@ -66,7 +66,7 @@ the rmw_implementation_value can be <code> rmw_cyclonedds_cpp, rmw_fastrtps_cpp,
 
 **Note:** To run the experiments for other data types, you have to change the bridging service inputs for the ePrsoima DDS and RTI Connext DDS. <br>
 For string data type, for example: <br>
-  On the Publisher node <code>bash ./experiment_dds_performance_script_binary.sh</code> <br>
+  On the Publisher node <code>bash ./experiment_dds_performance_script_string.sh</code> <br>
   **eProsima DDS:** <code>integration-service /root/is_workspace/**string_data.yaml**</code> <br>
   **RTI Connext DDS:** <code>  bin/rtiroutingservice -cfgFile ~/rti_workspace/**string_stream_bridge.xml** -cfgName domain5to10</code> <br>
 
