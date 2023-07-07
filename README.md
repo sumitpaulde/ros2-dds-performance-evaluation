@@ -59,7 +59,7 @@ We have added <code> experiment_dds_performance_script_binary.sh, experiment_dds
 <code>RMW_IMPLEMENTATION=<rmw_implementation_value> ROS_DOMAIN_ID=10 ros2 run cam_stream binary_subscriber_relay_publisher</code> <br>
 the rmw_implementation_value can be <code> rmw_cyclonedds_cpp, rmw_fastrtps_cpp, rmw_connextdds  </code> according to the DDS implementation.
 * **Publisher Node:** Now you can start the script for the Binary file experiment by running <code>bash ./experiment_dds_performance_script_binary.sh</code>
-* As soon as the script starts, it will ask you to choose a rmw for the experiment, please choose by typing 1, 2 or 3.
+* As soon as the script starts, it will ask you to choose a rmw for the experiment, please choose by typing 1, 2 or 3.<br>
   ![14](https://github.com/sumitpaulde/ros2-dds-performance-evaluation/assets/62351460/21dd1a40-63f7-4e93-8b41-421b35548888)
 * To confirm that you have already started the bridging service, the script will remind you with a question, if you already have the bridging service on, please press "y". <br>
   ![12](https://github.com/sumitpaulde/ros2-dds-performance-evaluation/assets/62351460/7965212b-0270-46fc-a494-0a9a9edc7935)
