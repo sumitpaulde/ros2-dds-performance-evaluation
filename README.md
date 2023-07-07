@@ -17,7 +17,7 @@ To install the evaluation framework on Ubuntu or Windows machine, please install
 2. docker.
 3. docker-compose.
 
-### Download the DDS-implementations
+### Download the DDS-implementations custom installers
 To run the experiments with ROS2-Humble we had to make some changes for the eProsima and RTI Connext DDS installers. eProsima DDS still now does not have a new release for Humble compatibility, and RTI Connext does not provide the rmw installer for the ARM architecture. So for both of these DDS implementations, we have made some changes to the installer files and kept those in the [shared folder](https://tubcloud.tu-berlin.de/s/jC93LXrt9ScKF7r).
 
 ### Build
